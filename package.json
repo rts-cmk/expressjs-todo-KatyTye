@@ -15,7 +15,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "server": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "server": "node index.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
