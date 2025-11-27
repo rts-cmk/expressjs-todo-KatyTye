@@ -1,0 +1,41 @@
+{
+  "success": true,
+  "ids": [
+    1
+  ],
+  "default": "awaiting",
+  "results": [
+    {
+      "category": "awaiting",
+      "color": "red",
+      "list": [
+        {
+          "id": 1,
+          "progress": 0,
+          "title": "initiate the project",
+          "tags": [
+            "CSS",
+            "JAVASCRIPT",
+            "HTML"
+          ],
+          "authors": [
+            {
+              "name": "david",
+              "email": "david@mail.com"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "category": "inprogress",
+      "color": "yellow",
+      "list": []
+    },
+    {
+      "category": "completed",
+      "color": "green",
+      "list": []
+    }
+  ]
+}
