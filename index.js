@@ -56,7 +56,7 @@ server.get("/todo/:id", async (request, response) => {
 })
 
 // CREATE NEW ITEM OR CATEGORY
-server.post("/todo", async (request, response) => {
+server.post("/todo", upload.none(), async (request, response) => {
 	let data = await returnJSON()
 	let body = request.body
 	let newItem
@@ -69,7 +69,7 @@ server.post("/todo", async (request, response) => {
 		return sendError(response, 406, "Your request does not fulfill the requirements. (type needed)")
 	}
 
-	if (body.type != "category" || body.type != "item") {
+	if (body.type != "category" && body.type != "item") {
 		return sendError(response, 406, "Your request type cannot be anthing other then category or item.")
 	}
 
@@ -85,8 +85,8 @@ server.post("/todo", async (request, response) => {
 			"id": currentIDs,
 			"progress": 0,
 			"title": body.title,
-			"tags": body.tags,
-			"authors": body.authors
+			"tags": JSON.parse(body.tags),
+			"authors": JSON.parse(body.authors)
 		}
 
 		data.results.find(
@@ -107,8 +107,8 @@ server.post("/todo", async (request, response) => {
 		}
 
 		const NEW_CATEGORY = {
-			"category": "awaiting",
-			"color": "red",
+			"category": body.title,
+			"color": body.color,
 			"list": []
 		}
 
@@ -126,7 +126,7 @@ server.post("/todo", async (request, response) => {
 })
 
 // UPDATE ITEM
-server.put("/todo", async (request, response) => {
+server.put("/todo", upload.none(), async (request, response) => {
 	let data = await returnJSON()
 	let body = request.body
 	let changed = false
@@ -172,8 +172,6 @@ server.patch("/todo", upload.none(), async (request, response) => {
 	let data = await returnJSON()
 	let body = request.body
 
-	console.log(body)
-
 	if (!body) {
 		return sendError(response, 406, "Your request does not fulfill the requirements. (body needed)")
 	}
@@ -199,8 +197,28 @@ server.patch("/todo", upload.none(), async (request, response) => {
 
 		data.results.forEach((category) => {
 			if (category.list.find((element) => element.id == body.id)) {
-				oldValue = category.list.find((element) => element.id == body.id)[body.item]
-				category.list.find((element) => element.id == body.id)[body.item] = body.value
+				let elem = category.list.find((element) => element.id == body.id)
+
+				if (body.item != "tags" && body.item != "authors") {
+					oldValue = elem[body.item]
+					elem[body.item] = Number(body.value) || body.value
+				} else {
+					if (body.item == "tags") {
+						if (!elem.tags.find((lis) => lis == body.value)) {
+							elem.tags.push(body.value)
+						} else {
+							elem.tags = elem.tags.filter(fil => fil !== body.value)
+						}
+					} else {
+						let obj = JSON.parse(body.value)
+
+						if (!elem.authors.find((lis) => lis.name == obj.name)) {
+							elem.authors.push(obj)
+						} else {
+							elem.authors = elem.authors.filter(fil => fil.name != obj.name)
+						}
+					}
+				}
 			}
 		})
 
@@ -209,7 +227,7 @@ server.patch("/todo", upload.none(), async (request, response) => {
 		response.status(202).json(
 			{
 				success: true,
-				message: `updated item with id ${body.id}. (${body.item}:${oldValue} => ${body.item}:${body.value})`
+				message: `updated item with id ${body.id}. (${body.item})`
 			}
 		)
 	} else {
@@ -217,6 +235,10 @@ server.patch("/todo", upload.none(), async (request, response) => {
 
 		if (!body.name || !body.value || !body.item) {
 			return sendError(response, 406, "Your request does not fulfill the requirements. (name, item and value needed)")
+		}
+
+		if (body.name === "list") {
+			return sendError(response, 406, "You cannot set the list to a text.")
 		}
 
 		data.results.forEach((category) => {
@@ -231,9 +253,70 @@ server.patch("/todo", upload.none(), async (request, response) => {
 		response.status(202).json(
 			{
 				success: true,
-				message: `updated category named ${body.name}. (${body.item}:${oldValue} => ${body.item}:${body.value})`
+				message: `updated category named ${body.name}. (${body.item}: ${oldValue} => ${body.item}: ${body.value})`
 			}
 		)
+	}
+})
+
+server.delete("/todo", async (request, response) => {
+	let data = await returnJSON()
+	let body = request.body
+
+	if (!body) {
+		return sendError(response, 406, "Your request does not fulfill the requirements. (body needed)")
+	}
+
+	if (!body.type) {
+		return sendError(response, 406, "Your request does not fulfill the requirements. (type and name/id needed)")
+	}
+
+	if (body.type != "category" && body.type != "item") {
+		return sendError(response, 406, "Your request type cannot be anthing other then category or item.")
+	}
+
+	if (!body.id) {
+		return sendError(response, 406, "Your request does not fulfill the requirements. (type and name/id needed)")
+	}
+
+	if (body.type === "item") {
+		if (!data.ids[body.id] === false) {
+			return sendError(response)
+		}
+
+		data.ids.splice(data.ids.indexOf(body.id), 1)
+
+		data.results.forEach((category) => {
+			if (category.list.find((element) => element.id == body.id)) {
+				category.list = category.list.filter((fil) => fil.id != body.id)
+			}
+		})
+
+		updateJSON(data)
+
+		response.status(200).json({
+			success: true,
+			message: "the item is now removed"
+		})
+	} else {
+		let category = data.results.find((category) => category.category == body.id)
+
+		if (!category) {
+			return sendError(response, 404, "Your requested category does not exist.")
+		}
+
+		if (category.list.length != 0 || data.default == category.category) {
+			return sendError(response, 406, "Your requested category has items or is the default, please change it.")
+		}
+
+		data.results = data.results.filter((category) => category.category != body.id)
+
+		updateJSON(data)
+
+		response.status(200).json({
+			success: true,
+			message: "the category is now removed"
+		})
 	}
 })
 
