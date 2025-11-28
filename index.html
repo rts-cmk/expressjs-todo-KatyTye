@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="./main.js" defer></script>
+	<title>Document</title>
+</head>
+
+<body>
+
+	<section>
+		<h1>ACTIONS</h1>
+		<form action="http://localhost:3000/todo" id="patch">
+			<h2>
+				patchCategory / patchItem - SPECIFIC UPDATE
+			</h2>
+			<select name="type" required>
+				<option value="">Select which type to change</option>
+				<option value="item">item</option>
+				<option value="category">category</option>
+			</select>
+			<p>Pick One</p>
+			<input type="text" name="name" placeholder="category name">
+			<input type="number" name="id" placeholder="item id">
+			<p>Required</p>
+			<input type="text" name="item" placeholder="what value to change" required>
+			<input type="text" name="value" placeholder="change what value it is" required>
+			<br>
+			<button>Submit</button>
+		</form>
+
+		<form action="http://localhost:3000/todo" id="post">
+			<h2>
+				postCategory / postItem - UPLOAD
+			</h2>
+			<select name="type" required>
+				<option value="">Select which type to change</option>
+				<option value="item">item</option>
+				<option value="category">category</option>
+			</select>
+			<p>Required</p>
+			<input type="text" name="title" placeholder="category name/item name">
+			<p>Category</p>
+			<input type="text" name="color" placeholder="color">
+			<p>Item</p>
+			<input type="text" name="tags" placeholder="what tags you wonna add">
+			<input type="text" name="authors" placeholder="who made this">
+			<br>
+			<button>Submit</button>
+		</form>
+
+		<form action="http://localhost:3000/todo" id="delete">
+			<h2>
+				deleteCategory / deleteItem - DELETE
+			</h2>
+			<select name="type" required>
+				<option value="">Select which type to change</option>
+				<option value="item">item</option>
+				<option value="category">category</option>
+			</select>
+			<p>Required</p>
+			<input type="text" name="id" placeholder="category name/item id">
+			<br>
+			<button>Submit</button>
+		</form>
+	</section>
+	<!-- <section>
+		<h2>OUTPUT</h2>
+		<iframe src="http://localhost:3000/todo" frameborder="0"></iframe>
+	</section> -->
+</body>
+
+</html>
